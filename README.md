@@ -1,6 +1,6 @@
 #reddit Twitter Bot
 
-A Python bot that takes posts from reddit and automatically posts them on Twitter.
+A Python bot that looks up posts from reddit and automatically posts them on Twitter.
 
 ##Disclaimer
 
