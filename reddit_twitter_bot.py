@@ -60,14 +60,14 @@ def tweet_creator(subreddit_info):
     # "limit" tells the API the maximum number of posts to look up
 
     for submission in subreddit_info.get_hot(limit=5):
-        if already_tweeted(submission.id):
+        if not already_tweeted(submission.id):
             # This stores a link to the reddit post itself
             # If you want to link to what the post is linking to instead, use
             # "submission.url" instead of "submission.permanlink"
             post_dict[strip_title(submission.title)] = submission.permalink
             post_ids.append(submission.id)
         else:
-            print("[bot] Already posted: " + str(submission))
+            print("[bot] Already tweeted: " + str(submission))
 
     shortened_post_dict = {}
 
