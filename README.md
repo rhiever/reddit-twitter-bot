@@ -29,4 +29,8 @@ Once you edit the bot script to provide the necessary API keys, you can run the 
 
     python reddit_twitter_bot.py
  
-Look into the code itself for configuration options of the bot.
+Look into the script itself for configuration options of the bot.
+
+##Have questions? Need help with the bot?
+
+If you're having issues with or have questions about the bot, please [file an issue](https://github.com/rhiever/reddit-twitter-bot/issues) in this repository so one of the project managers can get back to you. Please check the existing (and closed) issues to make sure your issue hasn't already been addressed.
