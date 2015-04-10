@@ -8,9 +8,10 @@ I hold no liability for what you do with this script or what happens to you by u
 
 ##Dependencies
 
-You will need to install Python's [tweepy](https://github.com/tweepy/tweepy) library first:
+You will need to install Python's [tweepy](https://github.com/tweepy/tweepy) and [PRAW](https://praw.readthedocs.org/en/v2.1.21/) libraries first:
 
     easy_install tweepy
+    easy_install praw
     
 You will also need to create an app account on Twitter: [[instructions]](https://dev.twitter.com/apps)
 
