@@ -8,10 +8,10 @@ I hold no liability for what you do with this script or what happens to you by u
 
 ##Dependencies
 
-You will need to install Python's [tweepy](https://github.com/tweepy/tweepy) and [PRAW](https://praw.readthedocs.org/en/v2.1.21/) libraries first:
+You will need to install Python's [tweepy](https://github.com/tweepy/tweepy) and [PRAW](https://praw.readthedocs.org/en/) libraries first:
 
-    easy_install tweepy
-    easy_install praw
+    pip install tweepy
+    pip install praw
     
 You will also need to create an app account on Twitter: [[instructions]](https://dev.twitter.com/apps)
 
@@ -21,11 +21,9 @@ You will also need to create an app account on Twitter: [[instructions]](https:/
 4. Generate a new OAuth token with those permissions
 5. Manually edit this script and put those tokens in the script
 
-Lastly, you will need to create a developer account with Google: [[instructions]](https://developers.google.com/maps/documentation/javascript/tutorial#api_key)
-
 ##Usage
 
-Once you edit the bot script to provide the necessary API keys, you can run the bot on the command line:
+Once you edit the bot script to provide the necessary API keys and the subreddit you want to tweet from, you can run the bot on the command line:
 
     python reddit_twitter_bot.py
  
