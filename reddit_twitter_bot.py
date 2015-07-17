@@ -24,6 +24,7 @@ import requests
 import tweepy
 import time
 import os.path
+import urllib.parse
 
 # Place your Twitter API keys here
 ACCESS_TOKEN = ""
@@ -36,6 +37,9 @@ GOOGLE_API_KEY = ""
 
 # Place the subreddit you want to look up posts from here
 SUBREDDIT_TO_MONITOR = "dataisbeautiful"
+
+# Place the name of the folder where the images are downloaded
+FOLDER = "img"
 
 
 def setup_connection_reddit(subreddit):
@@ -50,6 +54,7 @@ def tweet_creator(subreddit_info):
     """ Looks up posts from reddit and shortens the URLs to them. """
     post_dict = {}
     post_ids = []
+
     print("[bot] Getting posts from reddit")
 
     # You can use the following "get" functions to get posts from reddit:
@@ -64,23 +69,29 @@ def tweet_creator(subreddit_info):
             # This stores a link to the reddit post itself
             # If you want to link to what the post is linking to instead, use
             # "submission.url" instead of "submission.permanlink"
-            post_dict[strip_title(submission.title)] = submission.permalink
+            post_dict[strip_title(submission.title)] = {}
+            post = post_dict[strip_title(submission.title)]
+            post["link"] = submission.permalink
+            # Store the url the post points to (if any)
+            # If it's an Imgur URL, it will later be downloaded and uploaded alongside the tweet
+            post["img_path"] = get_image(submission.url)
+            
             post_ids.append(submission.id)
         else:
             print("[bot] Already tweeted: " + str(submission))
 
-    shortened_post_dict = {}
 
     if len(post_dict.keys()) > 0:
         print("[bot] Generating short link using goo.gl")
 
         for post in post_dict:
             post_title = post
-            post_link = post_dict[post]
+            post_link = post_dict[post]["link"]
             short_link = shorten(post_link)
-            shortened_post_dict[post_title] = short_link
+            post_dict[post_title]["link"] = short_link
 
-    return shortened_post_dict, post_ids
+    print(post_dict)
+    return post_dict, post_ids
 
 
 def already_tweeted(post_id):
@@ -99,10 +110,30 @@ def strip_title(title):
 
     # How much you strip from the title depends on how much extra text
     # (URLs, hashtags, etc.) that you add to the tweet
-    if len(title) < 106:
+    if len(title) < 83:
         return title
     else:
-        return title[:105] + "..."
+        return title[:82] + "..."
+
+
+def get_image(img_url):
+    """ Downloads i.imgur.com images that Reddit posts may point to. """
+    if "imgur.com" in img_url:
+        file_name = os.path.basename(urllib.parse.urlsplit(img_url).path)
+        img_path = FOLDER + "/" + file_name
+        print("[bot] Downloading image at URL " + img_url + " to " + img_path)
+        resp = requests.get(img_url, stream=True)
+        if resp.status_code == 200:
+            with open(img_path, "wb") as f:
+                for chunk in resp:
+                    f.write(chunk)
+            # Return the path of the image, which is always the same since we just overwrite images
+            return img_path
+        else:
+            print("[bot] Image failed to download. Status code: " + resp.status_code)
+    else:
+        print("[bot] Post doesn't point to an i.imgur.com link")
+    return ""
 
 
 def shorten(url):
@@ -120,11 +151,17 @@ def tweeter(post_dict, post_ids):
     auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
     auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
     api = tweepy.API(auth)
+    
     for post, post_id in zip(post_dict, post_ids):
-        post_text = post + " " + post_dict[post] + " #dataviz"
+        img_path = post_dict[post]["img_path"]
+        post_text = post + " " + post_dict[post]["link"] + " #dataviz"
         print("[bot] Posting this link on Twitter")
         print(post_text)
-        api.update_status(post_text)
+        if img_path:
+            print("[bot] With image " + img_path)
+            api.update_with_media(filename=img_path, status=post_text)
+        else:
+            api.update_status(status=post_text)
         log_tweet(post_id)
         time.sleep(30)
 
@@ -141,6 +178,8 @@ def main():
     if not os.path.exists("posted_posts.txt"):
         with open("posted_posts.txt", "w"):
             pass
+    if not os.path.exists(FOLDER):
+        os.makedirs(FOLDER)
 
     subreddit = setup_connection_reddit(SUBREDDIT_TO_MONITOR)
     post_dict, post_ids = tweet_creator(subreddit)
