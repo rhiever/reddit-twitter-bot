@@ -42,6 +42,17 @@ IMAGE_DIR = 'img'
 # Place the name of the file to store the IDs of posts that have been posted
 POSTED_CACHE = 'posted_posts.txt'
 
+# Place the string you want to add at the end of your tweets (can be empty)
+TWEET_SUFFIX = ' #dataviz'
+
+# Place the maximum length for a tweet
+TWEET_MAX_LEN = 140
+
+# Place the time you want to wait between each tweets (in seconds)
+DELAY_BETWEEN_TWEETS = 30
+
+# Place the lengths of t.co links (cf https://dev.twitter.com/overview/t.co)
+T_CO_LINKS_LEN = 24
 
 def setup_connection_reddit(subreddit):
     ''' Creates a connection to the reddit API. '''
@@ -100,6 +111,9 @@ def strip_title(title, num_characters):
 
     # How much you strip from the title depends on how much extra text
     # (URLs, hashtags, etc.) that you add to the tweet
+    # Note: it is annoying but some short urls like "data.gov" will be
+    # replaced by longer URLs by twitter. Long term solution could be to
+    # use urllib.parse to detect those.
     if len(title) <= num_characters:
         return title
     else:
@@ -135,19 +149,20 @@ def tweeter(post_dict, post_ids):
     for post, post_id in zip(post_dict, post_ids):
         img_path = post_dict[post]['img_path']
 
+        extra_text = ' ' + post_dict[post]['link'] + TWEET_SUFFIX
+        extra_text_len = 1 + T_CO_LINKS_LEN + len(TWEET_SUFFIX)
+        if img_path:  # Image counts as a link
+            extra_text_len += T_CO_LINKS_LEN
+        post_text = strip_title(post, TWEET_MAX_LEN - extra_text_len) + extra_text
+        print('[bot] Posting this link on Twitter')
+        print(post_text)
         if img_path:
-            post_text = strip_title(post, 83) + ' ' + post_dict[post]['link'] + ' #dataviz'
-            print('[bot] Posting this link on Twitter')
-            print(post_text)
             print('[bot] With image ' + img_path)
             api.update_with_media(filename=img_path, status=post_text)
         else:
-            post_text = strip_title(post, 106) + ' ' + post_dict[post]['link'] + ' #dataviz'
-            print('[bot] Posting this link on Twitter')
-            print(post_text)
             api.update_status(status=post_text)
         log_tweet(post_id)
-        time.sleep(30)
+        time.sleep(DELAY_BETWEEN_TWEETS)
 
 
 def log_tweet(post_id):
