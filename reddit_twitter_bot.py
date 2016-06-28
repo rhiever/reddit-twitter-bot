@@ -103,7 +103,7 @@ def strip_title(title, num_characters):
     if len(title) <= num_characters:
         return title
     else:
-        return title[:num_characters] + '…'
+        return title[:num_characters - 1] + '…'
 
 
 def get_image(img_url):
