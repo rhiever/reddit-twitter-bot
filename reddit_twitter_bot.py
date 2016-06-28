@@ -47,8 +47,7 @@ def setup_connection_reddit(subreddit):
     ''' Creates a connection to the reddit API. '''
     print('[bot] Setting up connection with reddit')
     reddit_api = praw.Reddit('reddit Twitter tool monitoring {}'.format(subreddit))
-    subreddit = reddit_api.get_subreddit(subreddit)
-    return subreddit
+    return reddit_api.get_subreddit(subreddit)
 
 
 def tweet_creator(subreddit_info):
@@ -69,15 +68,15 @@ def tweet_creator(subreddit_info):
         if not already_tweeted(submission.id):
             # This stores a link to the reddit post itself
             # If you want to link to what the post is linking to instead, use
-            # "submission.url" instead of "submission.permanlink"
+            # "submission.url" instead of "submission.permalink"
             post_dict[submission.title] = {}
             post = post_dict[submission.title]
             post['link'] = submission.permalink
-            
+
             # Store the url the post points to (if any)
             # If it's an imgur URL, it will later be downloaded and uploaded alongside the tweet
             post['img_path'] = get_image(submission.url)
-            
+
             post_ids.append(submission.id)
         else:
             print('[bot] Already tweeted: {}'.format(str(submission)))
@@ -132,10 +131,10 @@ def tweeter(post_dict, post_ids):
     auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
     auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
     api = tweepy.API(auth)
-    
+
     for post, post_id in zip(post_dict, post_ids):
         img_path = post_dict[post]['img_path']
-        
+
         if img_path:
             post_text = strip_title(post, 83) + ' ' + post_dict[post]['link'] + ' #dataviz'
             print('[bot] Posting this link on Twitter')
@@ -169,10 +168,10 @@ def main():
     subreddit = setup_connection_reddit(SUBREDDIT_TO_MONITOR)
     post_dict, post_ids = tweet_creator(subreddit)
     tweeter(post_dict, post_ids)
-    
+
     # Clean out the image cache
     for filename in glob(IMAGE_DIR + '/*'):
-    	os.remove(filename)
+        os.remove(filename)
 
 if __name__ == '__main__':
     main()
